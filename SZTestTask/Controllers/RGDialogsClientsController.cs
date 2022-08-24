@@ -11,25 +11,15 @@ public class RGDialogsClientsController : ControllerBase
     {
         var rgdc = new RGDialogsClients();
         var rgDialogsClientsList = rgdc.Init();
-        var dict = new Dictionary<Guid, List<Guid>>();
-        foreach (var dialog in rgDialogsClientsList)
+        foreach (var group in rgDialogsClientsList
+                     .GroupBy(x => x.IDRGDialog)
+                     .ToList())
         {
-            if (dict.ContainsKey(dialog.IDRGDialog))
+            var groupedClients = group.Select(x => x.IDClient);
+            if (clientIds.Union(groupedClients).SequenceEqual(clientIds))
             {
-                dict[dialog.IDRGDialog].Add(dialog.IDClient);
+                return group.Key;
             }
-            else
-            {
-                dict.Add(dialog.IDRGDialog, new List<Guid>{dialog.IDClient});
-            }
-        }
-
-        foreach (var kvp in dict)
-        {
-           if (kvp.Value.All(clientIds.Contains) && clientIds.All(kvp.Value.Contains))
-           {
-                return kvp.Key;
-           }
         }
 
         return Guid.Empty;
